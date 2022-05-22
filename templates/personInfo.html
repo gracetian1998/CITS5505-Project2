@@ -1,0 +1,17 @@
+<html>
+ {% include 'common.html'%}
+<body>
+  {% include 'navHeader.html'%}
+  <div class="container">
+    <div class="row show-grid">{#box-shadow: 0 0 5px 5px black;#}
+        <div id="personalInfo" class="thumbnail col-md-6 col-md-offset-3">
+            <img src="{{ session['user']['imgPath']  }}">
+            <div class="caption">
+                <h3>Username: {{ session['user']['name']  }} </h3>
+                <p>Email: {{ session['user']['email']  }} </p>
+                <p>BestScore: {{ session['user']['bestStep']  }} </p>
+           </div>
+        </div>
+    </div>
+ </body>
+</html>
