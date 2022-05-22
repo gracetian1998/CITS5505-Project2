@@ -1,0 +1,646 @@
+<html lang="en">
+    {% include 'common.html'%}
+<body>
+    {% include 'navHeader.html'%}
+  <div class="container">
+    <div class="row show-grid">
+      <div class="row show-grid">
+        <div class="col-xs-3 col-md-2">
+            <button  class="btn btn-primary" type="button" id="auto" >Auto play</button>
+        </div>
+        <div class="col-xs-3  col-md-2">
+            <button  class="btn btn-default" type="button" id="prev" >Prev step</button>
+        </div>
+        <div class="col-xs-3  col-md-2">
+            <button class="btn btn-default"  type="button" id="prevLevel" >Prev level</button>
+        </div>
+        <div class="col-xs-3 col-md-2">
+             <button class="btn btn-default" type="button" id="nextLevel" >Next level</button>
+        </div>
+     </div>
+    <div class="row show-grid">
+        <span>Your steps: </span>
+        <span id="stepNum">0</span>
+    </div>
+    <div class="row">
+         <div class="col-md-6" id = "wrap"></div>
+        <div class="col-md-4">
+            {% if now_time %}
+              <p class="bold alignCenter">{{ now_time }}</p>
+              {% else %}
+              <p class="bold alignCenter">Thu, May 12,2022</p>
+            {% endif %}
+            <p class="alignCenter">
+                <a id="youdisplay" href="#" onclick="changeAvatar()">
+                <span id="yourscore" style="display:none"> Hi<img id="youravatar" src="images/avatars/0.png" class="avatar" alt="">
+                    <span><span id="namedisplay"></span>
+                    <span id="mypointsdisplay">0</span>&nbsp;pts</span>
+                </span>
+                </a>
+            </p>
+            <div class="leaderboard-new">
+                <h2>
+                    <span id="toggleleaderboard" class="toggleleaderboard" href="#">Leaderboard</span>
+                </h2>
+                <div id="leaderboardBody">
+                    <ul class="menu tabs">
+                        <li><a id="tb1" class="active" href="javascript:void(0);">Daily</a>
+                        </li>
+                        <li><a id="tb2" href="javascript:void(0);">Last 7 days</a></li>
+                    </ul>
+                    <div id="tab1" class="tab">
+                        <ul id="players-list" class="players-list">
+                            {% for item in infolist %}
+                            <li>
+                                <span class="pos-tag second">{{ item.id }}</span>
+                                {% if item.img == '' %}
+                                    <img src="../static/img/0.png" alt="">
+                                {% else %}
+                                     <img src="{{ item.img }}" alt="">
+                                {% endif %}
+                                <span>{{ item.name }}</span>
+                                <span style="float:right">{{ item.score }} pts</span>
+                                <div class="cf"></div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    </div>
+<div id="sessionInfo"  style="display: none">
+    {% if session['user'] %}
+        <span class="sessionName"> {{ session['user']['name']}}</span>
+        <span class="seesionEmail"> {{ session['user']['email']}}</span>
+    {% else %}
+
+    {% endif %}
+</div>
+  </div>
+<!--win Modal -->
+<div class="modal fade" id="winModal" tabindex="-1" role="dialog" aria-labelledby="winModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="myModalLabel">Win The Game </h4>
+          </div>
+          <div class="modal-body">
+                Congratulations ！！！！！！
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal">Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+<!--login Modal -->
+<div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="winModalLabel">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-body">
+                    Please login in,to store your score.
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+               <a href="/login/">
+                   <button class="btn btn-primary">OK
+
+                   </button>
+               </a>
+              </div>
+            </div>
+          </div>
+    </div>
+  <script>
+    var game = (function () {
+
+      var Game = {
+        // Get the wrap element
+        oWrap: $('#wrap')[0],
+
+        // Width and height size of the map
+        size: { x: 16, y: 16 },
+
+        // What level
+        level: 0,
+
+        // Number of steps statistics
+        stepNum: 0,
+
+        // Step Memory
+        step: {
+          // Step-by-step data storage for characters
+          person: [],
+
+          // Storage of the parameters of the box
+          box: []
+        },
+
+        // Level Data
+        mapData: [
+          // First level data
+          [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0,
+            0, 0, 0, 0, 1, 1, 1, 3, 0, 3, 2, 1, 0, 0, 0, 0,
+            0, 0, 0, 0, 1, 2, 0, 3, 4, 1, 1, 1, 0, 0, 0, 0,
+            0, 0, 0, 0, 1, 1, 1, 1, 3, 1, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+          ],
+          // Second level data
+          [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 1, 4, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 1, 0, 3, 3, 1, 0, 1, 1, 1, 0, 0, 0,
+            0, 0, 0, 0, 1, 0, 3, 0, 1, 0, 1, 2, 1, 0, 0, 0,
+            0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 2, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 2, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+          ],
+          // The third level
+          [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 1, 0, 0, 0,
+            0, 0, 0, 0, 1, 1, 0, 0, 3, 2, 2, 2, 1, 0, 0, 0,
+            0, 0, 0, 0, 1, 0, 0, 3, 0, 1, 5, 2, 1, 0, 0, 0,
+            0, 0, 0, 1, 1, 0, 1, 1, 3, 1, 0, 1, 1, 0, 0, 0,
+            0, 0, 0, 1, 0, 0, 0, 3, 0, 0, 3, 0, 1, 0, 0, 0,
+            0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0,
+            0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 4, 0, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+          ],
+          //  The fourth level
+          [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
+            0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 4, 1, 1, 0, 0, 0,
+            0, 0, 0, 0, 1, 2, 2, 2, 2, 1, 3, 0, 1, 1, 0, 0,
+            0, 0, 0, 0, 1, 2, 2, 2, 2, 1, 0, 3, 0, 1, 0, 0,
+            0, 0, 0, 0, 1, 2, 2, 2, 2, 0, 3, 0, 0, 1, 0, 0,
+            0, 0, 0, 0, 1, 0, 2, 2, 2, 1, 0, 0, 0, 1, 0, 0,
+            1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0,
+            1, 0, 3, 0, 3, 0, 0, 0, 3, 0, 0, 1, 0, 0, 1, 0,
+            1, 0, 0, 0, 0, 3, 3, 0, 0, 0, 3, 0, 3, 0, 1, 0,
+            1, 1, 1, 0, 3, 0, 3, 0, 3, 0, 0, 1, 1, 1, 1, 0,
+            0, 0, 1, 1, 0, 0, 0, 3, 0, 3, 0, 1, 0, 0, 0, 0,
+            0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+            0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+          ]
+        ],
+
+        // Automatic Passing Data
+        auto: [
+          [40, 38, 37, 37, 39, 38, 38, 40, 39, 39], //40 down   38 Up  37 left 39 rightauto
+          []
+        ],
+
+        // img image relative address
+        imgPath : "../static/img/",
+        // Initialization
+        init: function () {
+
+          var _this = Game;
+          //_this.oWrap.style.cssText = 'width:' + _this.size.x * 35 + 'px;height:' + _this.size.y * 35 + 'px;';
+          // Binding button events
+          $("#prev").on('click', function () {
+              var _this = Game;
+              // Get Characters
+              var oPerson = _this.getBox('person', _this.oWrap)[0];
+              // Get all boxes
+              var aBox = _this.getBox('box', _this.oWrap);
+              var oBoxNow;
+
+              // Determine if the number of steps is 0
+              if (_this.stepNum != 0) {
+
+                // Get the character's previous position via step.person
+                oPerson.x = _this.step.person[_this.stepNum - 1].x;
+                oPerson.y = _this.step.person[_this.stepNum - 1].y;
+
+                // Set the character back by the position of the character
+                oPerson.style.left = oPerson.x * 35 + 'px';
+                oPerson.style.top = oPerson.y * 35 + 'px';
+                oPerson.style.zIndex = oPerson.x + oPerson.y * _this.size.x;
+                oPerson.children[0].src = _this.step.person[_this.stepNum - 1].src;
+
+                // Determine whether the box has moved, there is no previous step
+                if (_this.step.box[_this.stepNum - 1]) {
+                  oBoxNow = aBox[_this.step.box[_this.stepNum - 1].index];
+                  oBoxNow.x = _this.step.box[_this.stepNum - 1].x;
+                  oBoxNow.y = _this.step.box[_this.stepNum - 1].y;
+
+                  // Set the box will go to the previous step of the move
+                  oBoxNow.style.left = oBoxNow.x * 35 + 'px';
+                  oBoxNow.style.top = oBoxNow.y * 35 + 'px';
+                  oBoxNow.style.zIndex = oBoxNow.y * _this.size.x;
+                }
+                _this.stepNum--;
+              }
+        })
+            // Previous level
+          $("#prevLevel").on('click', function () {
+            if (_this.level > 0) {
+              _this.level--;
+              _this.createMap(_this.level);
+            }
+          })
+
+          // Next level
+         $("#nextLevel").on('click',  function () {
+            if (_this.level < _this.mapData.length - 2) {
+              _this.level++;
+            } else {
+              alert('You have already passed all!');
+              _this.level = 0;
+            }
+            _this.createMap(_this.level);
+            }
+         );
+
+          // Auto Play
+         $("#auto").on('click',  function () {
+            // Create Map
+            _this.createMap(_this.level);
+            // Get Character Box
+            var oParent = _this.getBox('person')[0]
+
+            // Get a picture of a person
+            var oP = oParent.children[0];
+
+            // Define count
+            var kNum = 0;
+
+            // Turn on the timer analog button
+            var timer = setInterval(function () {
+              var keyCode = _this.auto[_this.level][kNum];
+              _this.controlFn(oP, oParent, keyCode);
+
+              kNum++;
+              // Judgment clear timer
+              if (kNum == _this.auto[_this.level].length) {
+                clearInterval(timer)
+              }
+            }, 500)
+          });
+
+          _this.createMap(_this.level);
+        },
+
+
+        // Create Map
+        createMap: function (lv) {
+          //Map size
+          var oPerson, oDiv, oImg;
+          this.oWrap.innerHTML = '';
+          // Initialization step information
+          this.step.person = [];
+          this.step.box = [];
+          this.stepNum = 0;
+
+          //Create 15*15 small grids
+          for (var i = 0; i < this.size.x * this.size.y; i++) {
+            switch (this.mapData[lv][i]) {
+              case 1:
+                appDiv.call(this, i);
+                oImg.src = this.imgPath + 'wall.png';
+                oDiv.className = 'wall';
+                break;
+              case 2:
+                appDiv.call(this, i);
+                oImg.src = this.imgPath + 'ball.png';
+                oDiv.className = 'ball';
+                oDiv.style.zIndex = 0;
+                break;
+              case 3:
+                appDiv.call(this, i);
+                oImg.src = this.imgPath + 'box.png';
+                oDiv.className = 'box';
+                break;
+              case 4:
+                appDiv.call(this, i);
+                oImg.src = this.imgPath+ 'down.png';
+                oDiv.className = 'person';
+                oPerson = oImg;
+                break;
+            }
+          }
+
+          // Calling the control person function
+          this.controlPerson(oPerson)
+
+          // create div and img
+          function appDiv(i) {
+            var x = i % this.size.x;
+            var y = parseInt(i / this.size.x)
+            oDiv = document.createElement('div');
+            oDiv.x = x;
+            oDiv.y = y;
+            oDiv.style.cssText = 'left:' + x * 35 + 'px;top:' + y * 35 + 'px;z-index:' + (y * this.size.x) + ';';
+            oImg = new Image();
+            oDiv.appendChild(oImg);
+            this.oWrap.appendChild(oDiv);
+          }
+
+        },
+
+        // Controlling people
+        controlPerson: function (oP) {
+          var _this = this;
+          var oParent = oP.parentNode;
+          document.onkeydown = function (ev) {
+            ev = ev || window.event;
+            var keyCode = ev.keyCode;
+            _this.controlFn(oP, oParent, keyCode)
+            $("#stepNum").html(_this.stepNum);
+          }
+        },
+
+        // Control functions
+        controlFn: function (oP, oParent, keyCode) {
+
+          // Record the movement information
+          // At each step of stepNum person and create an empty object in step
+          // And save the src information of the image in the src of this object
+          this.step.person[this.stepNum] = {}
+          this.step.person[this.stepNum].src = oP.src
+
+          switch (keyCode) {
+            // Left
+            case 37:
+              oP.src = this.imgPath + 'left.png';
+              this.movePerson({ x: - 1 }, oParent)
+              break;
+            // Up
+            case 38:
+              oP.src = this.imgPath + 'up.png';
+              this.movePerson({ y: -1 }, oParent)
+              break;
+            // Right
+            case 39:
+              oP.src = this.imgPath + 'right.png';
+              this.movePerson({ x: 1 }, oParent)
+              break;
+            // Down
+            case 40:
+              oP.src = this.imgPath +'down.png';
+              this.movePerson({ y: 1 }, oParent)
+              break;
+          }
+
+        },
+
+        // Character movement
+        movePerson: function (mJson, oParent) {
+          var x = mJson.x || 0;
+          var y = mJson.y || 0;
+
+          // Get the number of boxes
+          var oBox = this.getBox('box', this.oWrap)
+
+          if (this.mapData[this.level][(oParent.x + x) + (oParent.y + y) * this.size.x] != 1) {
+            // Record the position information of the previous one before moving
+            // Record the position information of the person before moving in step.person
+            this.step.person[this.stepNum].x = oParent.x;
+            this.step.person[this.stepNum].y = oParent.y;
+
+            // oParent move
+            oParent.x += x;
+            oParent.y += y;
+            oParent.style.left = oParent.x * 35 + 'px';
+            oParent.style.top = oParent.y * 35 + 'px';
+            oParent.style.zIndex = oParent.x + oParent.y * this.size.x;
+
+            // Step plus one
+            this.stepNum++;
+
+            // Iterate through all the boxes
+            for (var i = 0; i < oBox.length; i++) {
+              // Determine if the location of the box is in the previous step of the character
+              if (oBox[i].x == oParent.x && oBox[i].y == oParent.y) {
+                // Determine if the last step of the box is a wall
+                if (this.mapData[this.level][(oBox[i].x + x) + (oParent.y + y) * this.size.x] != 1) {
+
+                  //Determining collision detection
+                  if (this.collision(oBox[i], x, y)) {
+                    // Record the previous position before moving the box
+                    // Boxes are also . Each move creates an object in step that holds the box before
+                      // it is moved and the box's subscript.
+                    this.step.box[this.stepNum - 1] = {};
+                    this.step.box[this.stepNum - 1].index = i;
+                    this.step.box[this.stepNum - 1].x = oBox[i].x;
+                    this.step.box[this.stepNum - 1].y = oBox[i].y
+
+                    // Mobile Box
+                    oBox[i].x += x;
+                    oBox[i].y += y;
+                    oBox[i].style.left = oBox[i].x * 35 + 'px';
+                    oBox[i].style.top = oBox[i].y * 35 + 'px';
+                    oBox[i].style.zIndex = oBox[i].y * this.size.x;
+
+                    // Execute the pass function to determine if a pass has been made
+                    this.pass();
+                  } else {
+
+                    oParent.x -= x;
+                    oParent.y -= y;
+                    oParent.style.left = oParent.x * 35 + 'px';
+                    oParent.style.top = oParent.y * 35 + 'px';
+                    oParent.style.zIndex = oParent.x + oParent.y * this.size.x;
+
+                    // Reduce step movement
+                    this.stepNum--;
+                    this.step.person.pop();
+
+                  }
+
+
+                } else {
+                  // If the box on a wall will not allow the character to move
+                  oParent.x -= x;
+                  oParent.y -= y;
+                  oParent.style.left = oParent.x * 35 + 'px';
+                  oParent.style.top = oParent.y * 35 + 'px';
+                  oParent.style.zIndex = oParent.x + oParent.y * this.size.x;
+
+                  // Reduce step movement
+                  this.stepNum--;
+                  this.step.person.pop();
+
+                }
+              }
+            }
+
+          }
+        },
+
+        //Box-to-box collision detection
+        collision: function (obj, x, y) {
+          // Get all boxes
+          var oBox = this.getBox('box', this.oWrap);
+
+          // Traversing the boxes
+          for (var i = 0; i < oBox.length; i++) {
+            if (oBox[i] != obj) {
+              if (oBox[i].x == obj.x + x && oBox[i].y == obj.y + y) {
+                return false;
+              }
+            }
+          }
+          return true;
+        },
+
+        // Get the number of boxes
+        getBox: function (cName, obj) {
+          obj = obj || document;
+          if (obj.getElementsByClassName) {
+            return obj.getElementsByClassName(cName);
+          } else {
+            var arr = [];
+            var allT = obj.getElementsByTagName('*');
+            for (var i = 0; i < allE.length; i++) {
+              var allTArr = allT[i].className.split(' ');
+              for (var j = 0; j < allTArr.length; i++) {
+                if (arrTArr[i] == cName) {
+                  arr.push(arrT[i]);
+                  break;
+                }
+              }
+            }
+            return arr;
+          }
+        },
+
+        // Passing the test
+        pass: function () {
+          var _this = Game
+          var oBall = _this.getBox('ball', this.oWrap);
+          var oBox = _this.getBox('box', this.oWrap);
+          var passNum = 0;
+
+          // Traversing oBall
+          for (var i = 0; i < oBall.length; i++) {
+            // Traversing oBall
+            for (var j = 0; j < oBox.length; j++) {
+              // Judgment. If all oBall and oBox positions on passName + 1
+              if (oBall[i].x == oBox[j].x && oBall[i].y == oBox[i].y) {
+                passNum++;
+              }
+            }
+          }
+          if (passNum == oBall.length) {
+
+            if (_this.level < _this.mapData.length - 2) {
+              $('#winModal').modal("show");
+            } else {
+              alert('You have passed all!');
+              _this.level = 0;
+              _this.createMap(_this.level)
+            }
+
+          }
+
+        },
+
+        // Previous function
+        prev: function () {
+          var _this = Game;
+          // Get Characters
+          var oPerson = _this.getBox('person', _this.oWrap)[0];
+          // Get all boxes
+          var aBox = _this.getBox('box', _this.oWrap);
+          var oBoxNow;
+
+          // Determine if the number of steps is 0
+          if (_this.stepNum != 0) {
+
+            // Get the character's previous position via step.person
+            oPerson.x = _this.step.person[_this.stepNum - 1].x;
+            oPerson.y = _this.step.person[_this.stepNum - 1].y;
+
+            // Set the character back by the position of the character
+            oPerson.style.left = oPerson.x * 35 + 'px';
+            oPerson.style.top = oPerson.y * 35 + 'px';
+            oPerson.style.zIndex = oPerson.x + oPerson.y * _this.size.x;
+            oPerson.children[0].src = _this.step.person[_this.stepNum - 1].src;
+
+            // Determine whether the box has moved, there is no previous step
+            if (_this.step.box[_this.stepNum - 1]) {
+              oBoxNow = aBox[_this.step.box[_this.stepNum - 1].index];
+              oBoxNow.x = _this.step.box[_this.stepNum - 1].x;
+              oBoxNow.y = _this.step.box[_this.stepNum - 1].y;
+
+              // Set the box will go to the previous step of the move
+              oBoxNow.style.left = oBoxNow.x * 35 + 'px';
+              oBoxNow.style.top = oBoxNow.y * 35 + 'px';
+              oBoxNow.style.zIndex = oBoxNow.y * _this.size.x;
+            }
+            _this.stepNum--;
+          }
+        }
+
+      }
+
+    $('#winModal').on('hidden.bs.modal', function (e) {
+        $.get("/checklogin/",function (data){
+          console.log(data)
+          if(data.status === 3){
+               $('#loginModal').modal("show")
+          }else{
+               var requestData = {
+                   "userName":  $("#sessionInfo").find(".sessionName").html().trim(),
+                   "email": $("#sessionInfo").find(".seesionEmail").html().trim(),
+                   "step":  $("#stepNum").html(),
+              }
+              // store info
+              $.ajax("/win/",{
+                     method:"POST",
+                     contentType:"application/json",
+                     data:JSON.stringify(requestData),
+                     dataType:'json',
+                     success: function (data){
+                         Game.createMap(++Game.level)
+                         $("#stepNum").html("0");
+                     }
+                 })
+          }
+        })
+    })
+
+    $('#loginModal').on('hidden.bs.modal', function (event) {
+        Game.createMap(++Game.level);
+    });
