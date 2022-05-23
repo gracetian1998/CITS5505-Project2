@@ -223,13 +223,13 @@
           ]
         ],
 
-        // Automatic Passing Data
+        //Automatic Passing Data
         auto: [
           [40, 38, 37, 37, 39, 38, 38, 40, 39, 39], //40 down   38 Up  37 left 39 rightauto
           []
         ],
 
-        // img image relative address
+        //img image relative address
         imgPath : "../static/img/",
         // Initialization
         init: function () {
@@ -378,7 +378,7 @@
 
         },
 
-        // Controlling people
+        // Controlling character
         controlPerson: function (oP) {
           var _this = this;
           var oParent = oP.parentNode;
@@ -458,8 +458,8 @@
                   //Determining collision detection
                   if (this.collision(oBox[i], x, y)) {
                     // Record the previous position before moving the box
-                    // Boxes are also . Each move creates an object in step that holds the box before
-                      // it is moved and the box's subscript.
+                    //  Boxes are also . Each move creates an object in step that holds the box before
+                      //  it is moved and the box's subscript.
                     this.step.box[this.stepNum - 1] = {};
                     this.step.box[this.stepNum - 1].index = i;
                     this.step.box[this.stepNum - 1].x = oBox[i].x;
@@ -490,7 +490,7 @@
 
 
                 } else {
-                  // If the box on a wall will not allow the character to move
+                  //  If the box on a wall will not allow the character to move
                   oParent.x -= x;
                   oParent.y -= y;
                   oParent.style.left = oParent.x * 35 + 'px';
@@ -524,7 +524,7 @@
           return true;
         },
 
-        // Get the number of boxes
+        //  Get the number of boxes
         getBox: function (cName, obj) {
           obj = obj || document;
           if (obj.getElementsByClassName) {
@@ -554,9 +554,9 @@
 
           // Traversing oBall
           for (var i = 0; i < oBall.length; i++) {
-            // Traversing oBall
+            //  Traversing oBall
             for (var j = 0; j < oBox.length; j++) {
-              // Judgment. If all oBall and oBox positions on passName + 1
+              //  Judgment. If all oBall and oBox positions on passName + 1
               if (oBall[i].x == oBox[j].x && oBall[i].y == oBox[i].y) {
                 passNum++;
               }
@@ -567,7 +567,7 @@
             if (_this.level < _this.mapData.length - 2) {
               $('#winModal').modal("show");
             } else {
-              alert('You have passed all!');
+              alert('You have already passed all!');
               _this.level = 0;
               _this.createMap(_this.level)
             }
@@ -644,3 +644,16 @@
     $('#loginModal').on('hidden.bs.modal', function (event) {
         Game.createMap(++Game.level);
     });
+      // Return initialize the interface
+      return Game.init;
+    })()
+
+    // init game gam object
+    game();
+
+
+  </script>
+    {% include 'footer.html'%}
+</body>
+
+</html>
