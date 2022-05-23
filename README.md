@@ -72,15 +72,17 @@ app.db
 | imgPath  | String(200) | unique      |../static/img/0.png|
 
 ## Author
-###Wenbo Gao 23335934 
+```
+#Wenbo Gao 23335934 
 
 Mainly responsible for the preparation of web front-end programs focusing on game design, 
 user registration and login, paging. JS can be edited with object-oriented ideas. 
 For example, in this project, game.html JS is edited in an object-oriented way. The game objects include init, createMap and controlPerson.
 Size (number of map squares),level(initialization registration),stepNum(number of steps),mapDate(map data) are all attributes of the object.
+```
 
-
-###Yazhen Tian 22942152
+```
+#Yazhen Tian 22942152
 
 I am mainly responsible for the back-end development of this project. 
 The main work is the design and implementation of the backend logic of the website 
@@ -91,6 +93,6 @@ and the backend saves it in the database,
 when the user logs into the website, the backend needs to determine whether the user has permission to log in 
 by whether the user name and password entered by the user are the same as those in the database.
 I think the most difficult part is to combine the front-end and back-end. I spent a lot of time working on this part.
-
+```
 
 
