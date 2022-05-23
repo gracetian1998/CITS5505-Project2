@@ -72,7 +72,7 @@ app.db
 | imgPath  | String(200) | unique      |../static/img/0.png|
 
 ## Author
-###Wenbo Gao 23335934 
+Wenbo Gao 23335934 
 ```
 Mainly responsible for the preparation of web front-end programs focusing on game design, 
 user registration and login, paging. JS can be edited with object-oriented ideas. 
@@ -80,7 +80,7 @@ For example, in this project, game.html JS is edited in an object-oriented way. 
 Size (number of map squares),level(initialization registration),stepNum(number of steps),mapDate(map data) are all attributes of the object.
 ```
 
-###Yazhen Tian 22942152
+Yazhen Tian 22942152
 ```
 I am mainly responsible for the back-end development of this project. 
 The main work is the design and implementation of the backend logic of the website 
